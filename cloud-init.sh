@@ -11,7 +11,7 @@ RUNNER_TAG="__RUNNER_TAG__"
 cat >> /etc/crontab << 'EOF'
 */1 * * * * root cat /proc/uptime | awk -F ' ' '{ if ($1 < 300) exit 1 }' && (cat /proc/loadavg | awk -F ' ' '{ if ($1 <= .3 && $2 < .3 && $3 < .3) exit 1 }' || poweroff)
 EOF
-GH_RUNNER_TOKEN=$(curl -s -X POST -H "Authorization: Bearer ${GH_PAT}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/ntampakas/self-hosted/actions/runners/registration-token | jq -r '.token')
+GH_RUNNER_TOKEN=$(curl -s -X POST -H "Authorization: Bearer ${GH_PAT}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${GH_REPO}/actions/runners/registration-token | jq -r '.token')
 
 # basics
 apt-get update
