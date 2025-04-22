@@ -1,0 +1,47 @@
+name: self-hosted runner-small
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  launch-ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::490752553772:role/GH-Actions-Drill
+          role-duration-seconds: 900
+          aws-region: eu-central-1
+
+      - name: Launch EC2 Instance
+        id: launch-ec2
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          IMAGE_ID: ami-03250b0e01c28d196
+          INSTANCE_TYPE: t3.small
+        run: |
+          ./run.sh ${{ github.run_id }}
+
+  run-on-self-hosted:
+    needs: launch-ec2
+    runs-on: ["${{github.run_id}}", self-hosted]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Instance type
+        run: |
+          TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+          curl http://169.254.169.254/latest/meta-data/instance-type -H "X-aws-ec2-metadata-token: $TOKEN"
