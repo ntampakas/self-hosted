@@ -4,6 +4,9 @@ on:
     branches:
       - main
 
+env:
+  CARGO_TERM_COLOR: always
+
 permissions:
   id-token: write
   contents: read
@@ -45,3 +48,7 @@ jobs:
         run: |
           TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
           curl http://169.254.169.254/latest/meta-data/instance-type -H "X-aws-ec2-metadata-token: $TOKEN"
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo +nightly fmt --all --check
