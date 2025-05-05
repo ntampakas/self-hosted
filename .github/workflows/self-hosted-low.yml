@@ -15,6 +15,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo +nightly fmt --all --check
+
   launch-ec2:
     runs-on: ubuntu-latest
     steps:
@@ -97,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - test
+      - run-on-self-hosted
       - fmt
     steps:
       - name: Decide whether the needed jobs succeeded or failed
